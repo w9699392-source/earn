@@ -822,12 +822,13 @@
             const progress = (currentUser.points % 500) / 500 * 100;
             document.getElementById('box-progress-bar').style.width = progress + "%";
             document.getElementById('box-progress-text').innerText = (currentUser.points % 500) + "/500 Pts";
-            
             // Referral Progress
-            const refProg = (currentUser.referrals / 5) * 100;
-            document.getElementById('ref-progress-bar').style.width = Math.min(refProg, 100) + "%";
-            document.getElementById('ref-count-display').innerText = currentUser.referrals + "/5";
-            document.getElementById('ref-link-text').innerText = "earndost.pk/?ref=" + currentUser.refCode;
+// 1. ریفرلز کو 5 سے زیادہ ہونے سے روکیں
+let displayRefs = Math.min(currentUser.referrals, 5);
+const refProg = (displayRefs / 5) * 100;
+document.getElementById('ref-progress-bar').style.width = Math.min(refProg, 100) + '%';
+document.getElementById('ref-count-display').innerText = displayRefs + "/5";
+document.getElementById('ref-link-text').innerText = "earndost.pk/?ref=" + currentUser.refCode;
 
             // Daily Bonus
             const now = Date.now();
