@@ -822,29 +822,40 @@
             const progress = (currentUser.points % 500) / 500 * 100;
             document.getElementById('box-progress-bar').style.width = progress + "%";
             document.getElementById('box-progress-text').innerText = (currentUser.points % 500) + "/500 Pts";
-            
-function simulateReferral() {
+          function simulateReferral() {
     let currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    // 1. اگر لیمٹ 5 ہو چکی ہے تو میسج دے کر واپس جائیں
+    // 1. اگر لمٹ پہلے ہی 5 ہو چکی ہے تو فوراً میسج دکھا کر روک دیں
     if (currentUser.referrals >= 5) {
-        alert("⛔ آپ اپنی 5 ریفرلز کی لیمٹ پہلے ہی مکمل کر چکے ہیں!");
-        return; // یہاں کوڈ رک جائے گا، کچھ نہیں ہوگا
+        alert("🛑 آپ اپنی 5 ریفرلز کی لمٹ پہلے ہی مکمل کر چکے ہیں! اب مزید پوائنٹس نہیں ملیں گے۔");
+        return;
     }
 
-    // 2. ایڈ کھولیں
-    window.open('https://www.effectivecpmnetwork.com/gvfla7zvp?key=29ff465b3e36791ddb1f8f1c48492c43', '_blank');
+    // ایڈ کھولیں
+    window.open('https://www.effectivecpmnetwork.com/gvfla7zvp?key=29ff465b3e36791ddb...');
 
-    // 3. پوائنٹس دیں اور ریفرل بڑھائیں
+    // پوائنٹس دیں اور ریفرل بڑھائیں (3 سیکنڈ بعد)
     setTimeout(() => {
+        // دوبارہ تازہ ترین ڈیٹا حاصل کریں تاکہ ریس کنڈیشن نہ بنے
         currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        // یہاں بھی دوبارہ چیک کریں گے تاکہ اگر کسی نے ایڈ کھلتے ہی جلدی سے دوبارہ کلک کیا ہو تو پوائنٹ نہ بڑھیں
+        if (currentUser.referrals >= 5) {
+            alert("🛑 لمٹ مکمل ہو چکی ہے، پوائنٹس نہیں بڑھائے جا سکتے۔");
+            return;
+        }
+
         currentUser.referrals += 1;
         currentUser.points += 25;
+        
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
         if (typeof updateUI === 'function') updateUI();
-        alert(`🎉 مبارک ہو! آپ کو 25 پوائنٹس مل گئے!`);
+        alert('🎉 مبارک ہو! آپ کو 25 پوائنٹس مل گئے');
     }, 3000);
-        }
+          }
+              
+
             // Daily Bonus
             const now = Date.now();
             const btn = document.getElementById('daily-bonus-btn');
