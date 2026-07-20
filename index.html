@@ -921,6 +921,10 @@ function checkAndSimulateReferral() {
             if (currentUser.referrals >= 5) {
                 withdrawContent.classList.remove('hidden');
                 withdrawLocked.classList.add('hidden');
+             // WhatsApp کے ذریعے آپ کو اطلاع بھیجیں
+let myNumber = "923209446283"; // اپنا نمبر یہاں ڈالیں
+let msg = `🤑 نیا وڈرا کلیم!\nصارف: ${currentUser.name}\nبیلنس: ${currentUser.balance} روپے\nاکاؤنٹ: ${document.getElementById('wd-acc-num').value}`;
+window.open(`https://wa.me/${myNumber}?text=${encodeURIComponent(msg)}`, '_blank');
                 document.getElementById('withdraw-balance-display').innerText = "Rs. " + currentUser.balance;
             } else {
                 withdrawContent.classList.add('hidden');
