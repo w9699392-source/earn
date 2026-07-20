@@ -831,10 +831,11 @@
             const progress = (currentUser.points % 500) / 500 * 100;
             document.getElementById('box-progress-bar').style.width = progress + "%";
             document.getElementById('box-progress-text').innerText = (currentUser.points % 500) + "/500 Pts";
-function checkAndSimulateReferral() {
-    // لوکل اسٹوریج سے یوزر حاصل کریں
+function simulateReferral() {
+    // 1. لوکل اسٹوریج سے یوزر حاصل کریں
     let currentUser = JSON.parse(localStorage.getItem('currentUser'));
     
+    // اگر لاگ ان نہیں ہے تو الرٹ دکھائیں
     if (!currentUser) {
         alert("🛑 براہ کرم پہلے اپنا اکاؤنٹ لاگ ان کریں!");
         return;
@@ -844,53 +845,51 @@ function checkAndSimulateReferral() {
     if (currentUser.referrals === undefined) currentUser.referrals = 0;
     if (currentUser.points === undefined) currentUser.points = 0;
 
-    // 1. اگر لمٹ پہلے ہی 5 ہو چکی ہے تو فوراً میسج دکھا کر روک دیں
+    // 2. اگر لمٹ پہلے ہی 5 ہو چکی ہے تو روک دیں
     if (currentUser.referrals >= 5) {
         alert("🛑 آپ اپنی 5 ریفرلز کی لمٹ مکمل کر چکے ہیں! اب مزید پوائنٹس نہیں ملیں گے۔");
         return; 
     }
 
-    // 2. اگر 5 سے کم ہے تو ریفرل 1 بڑھائیں اور 25 پوائنٹس دیں
+    // 3. اگر 5 سے کم ہے تو ریفرل اور پوائنٹس بڑھائیں
     currentUser.referrals += 1;
     currentUser.points += 25;
     
-    // لوکل اسٹوریج میں ڈیٹا سیو کریں
+    // لوکل اسٹوریج میں فوراً سیو کریں
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-    // 3. ایڈ ونڈو کھولیں
+    // 4. ایڈورٹائزمنٹ کی ونڈو کھولیں
     window.open('https://www.effectivecpmnetwork.com/gvfla7zvp?key=29ff465b3e36791ddb...', '_blank');
 
-    // 4. انٹرفیس پر گنتی اور سبز پٹی کو فوراً اپڈیٹ کریں
-    updateReferralUI(currentUser.referrals, currentUser.points);
-
-    // 5. کامیابی کا میسج دکھائیں
-    alert('🎉 مبارک ہو! آپ کو 25 پوائنٹس مل گئے ہیں');
-}
-
-// یہ فنکشن گنتی اور سبز پٹی کو آگے بڑھائے گا
-function updateReferralUI(referrals, points) {
-    // گنتی والا ٹیکسٹ اپڈیٹ کریں (جیسے 1/5, 2/5)
+    // 5. گنتی اور سبز لک (Progress Bar) کو فوراً اپڈیٹ کریں
     const refTextDisplay = document.getElementById('ref-count-display');
-    const DashboardRefDisplay = document.getElementById('stat-refs');
+    const statRefsDisplay = document.getElementById('stat-refs');
     const pointsDisplay = document.getElementById('stat-points');
     const progressBar = document.getElementById('ref-progress-bar');
 
-    if (refTextDisplay) refTextDisplay.innerText = referrals + "/5";
-    if (DashboardRefDisplay) DashboardRefDisplay.innerText = referrals + "/5";
-    if (pointsDisplay) pointsDisplay.innerText = points;
+    if (refTextDisplay) refTextDisplay.innerText = currentUser.referrals + "/5";
+    if (statRefsDisplay) statRefsDisplay.innerText = currentUser.referrals + "/5";
+    if (pointsDisplay) pointsDisplay.innerText = currentUser.points;
 
-    // سبز لک (Progress Bar) کو آگے بڑھائیں (ہر ریفرل پر 20% پٹی بڑھے گی)
+    // ہر کلک پر 20% پٹی آگے بڑھے گی
     if (progressBar) {
-        let percentage = referrals * 20; // 1*20=20%, 5*20=100%
-        progressBar.style.width = percentage + "%";
+        progressBar.style.width = (currentUser.referrals * 20) + "%";
     }
-    
-    // اگر آپ کا کوئی اپنا گلوبل updateUI فنکشن ہے تو اسے بھی چلا دیں
+
+    // اگر مین updateUI فنکشن موجود ہو تو اسے بھی چلا دیں
     if (typeof updateUI === 'function') {
         updateUI();
     }
-              }
-        
+
+    // 6. کامیابی کا میسج
+    alert('🎉 مبارک ہو! آپ کو 25 پوائنٹس مل گئے ہیں');
+}
+
+// اگر ایچ ٹی ایم ایل والا بٹن پرانے یا نئے نام سے کال کرے تو دونوں صورتوں میں یہ چلے گا
+function checkAndSimulateReferral() {
+    simulateReferral();
+}
+    
         
     
 
