@@ -836,15 +836,7 @@ function simulateReferral() {
     window.open('https://www.effectivecpmnetwork.com/gvfla7zvp?key=29ff465b3e36791ddb1f8f1c48492c43', '_blank');
 
     // 3 سیکنڈ بعد صرف ریفرلز کی گنتی بڑھے گی (پوائنٹس نہیں ملیں گے)
-    setTimeout(() => {
-        currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        currentUser.referrals += 1;
-        // پوائنٹس والی لائن کو ہٹا دیا گیا ہے
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        if (typeof updateUI === 'function') updateUI();
-        alert(`🎉 مبارک ہو! ریفرلز کی گنتی بڑھ گئی! اب کل ریفرلز: ${currentUser.referrals}/5`);
-    }, 3000);
-}
+   
             // Daily Bonus
             const now = Date.now();
             const btn = document.getElementById('daily-bonus-btn');
