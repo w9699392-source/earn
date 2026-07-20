@@ -1387,28 +1387,48 @@ function checkAndSimulateReferral() {
         ========================================
         */
         function processWithdrawal() {
-            const method = document.getElementById('wd-method').value;
-            const accNum = document.getElementById('wd-acc-num').value;
-            const accName = document.getElementById('wd-acc-name').value;
-            const amount = parseInt(document.getElementById('wd-amount').value);
+    const method = document.getElementById('wd-method').value;
+    const accNum = document.getElementById('wd-acc-num').value;
+    const accName = document.getElementById('wd-acc-name').value;
+    const amount = parseInt(document.getElementById('wd-amount').value);
 
-            if (!accNum || !accName || !amount) return alert("Please fill all fields.");
-            if (amount < 100) return alert("Minimum withdrawal is Rs. 100.");
-            if (amount > currentUser.balance) return alert("Insufficient balance.");
+    if (!accNum || !accName || !amount) return alert("Please fill all fields.");
+    if (amount < 100) return alert("Minimum withdrawal is Rs. 100.");
+    if (amount > currentUser.balance) return alert("Insufficient balance.");
 
-            currentUser.balance -= amount;
-            const trans = {
-                id: 'PPB' + Date.now().toString().slice(-6),
-                method, accNum, amount, date: new Date().toLocaleDateString(), status: 'Pending'
-            };
-            currentUser.withdrawals.unshift(trans);
-            
-            saveUsers();
-            updateUI();
-            renderWithdrawalHistory();
-            alert(`Withdrawal Requested! Ref ID: ${trans.id}. Please wait 3-7 days.`);
+    currentUser.balance -= amount;
+    const trans = {
+        id: 'PPB' + Date.now().toString().slice(-6),
+        method, accNum, amount, date: new Date().toLocaleDateString(), status: 'Pending'
+    };
+    currentUser.withdrawals.unshift(trans);
+
+    saveUsers();
+    updateUI();
+    renderWithdrawalHistory();
+
+    // ==========================================
+    // 👇 یہ WhatsApp کا کوڈ ہے (آپ کا نمبر کوڈ میں محفوظ ہے)
+    // ==========================================
+    // آپ کا نمبر یہاں محفوظ ہے۔ صارف اسے نہیں دیکھ سکتا
+    const adminNumber = "923209446283"; 
+
+    // صارف کو بھیجے جانے والے پیغام میں آپ کا نمبر نظر نہیں آئے گا
+    const message = 
+        `🤑 *نیا وڈرا کلیم!*\n\n` +
+        `👤 صارف: ${currentUser.name}\n` +
+        `💰 رقم: ${amount} PKR\n` +
+        `🏦 اکاؤنٹ: ${accNum} (${method})\n` +
+        `🆔 ریف آئی ڈی: ${trans.id}`;
+
+    // یہ لنک صارف کے فون پر WhatsApp کھولے گا، لیکن اسے نمبر نہیں دکھائے گا
+    window.open(`https://wa.me/${adminNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    // ==========================================
+    // 👆 WhatsApp کوڈ یہاں ختم ہوتا ہے
+    // ==========================================
+
+    alert(`Withdrawal Requested! Ref ID: ${trans.id}. Please wait 3-7 days.`);
         }
-
         function renderWithdrawalHistory() {
             const container = document.getElementById('wd-history');
             if (currentUser.withdrawals.length === 0) {
