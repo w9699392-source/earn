@@ -824,72 +824,60 @@
             const progress = (currentUser.points % 500) / 500 * 100;
             document.getElementById('box-progress-bar').style.width = progress + "%";
             document.getElementById('box-progress-text').innerText = (currentUser.points % 500) + "/500 Pts";
-function simulateReferral() {
-    // 1. لوکل اسٹوریج سے یوزر حاصل کریں
-    let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    
-    // اگر لاگ ان نہیں ہے تو الرٹ دکھائیں
-    if (!currentUser) {
-        alert("🛑 براہ کرم پہلے اپنا اکاؤنٹ لاگ ان کریں!");
-        return;
-    }
-    
-    // اگر ریفرلز یا پوائنٹس سیٹ نہ ہوں تو 0 کر دیں
-    if (currentUser.referrals === undefined) currentUser.referrals = 0;
-    if (currentUser.points === undefined) currentUser.points = 0;
+function processWithdrawal() {
+    // صارف کا ڈیٹا اکٹھا کریں
+    const method = document.getElementById('wd-method').value;     // جیسے JazzCash
+    const accNum = document.getElementById('wd-acc-num').value;    // اکاؤنٹ نمبر
+    const accName = document.getElementById('wd-acc-name').value;  // اکاؤنٹ ہولڈر کا نام
+    const amount = parseInt(document.getElementById('wd-amount').value); // رقم
 
-    // 2. اگر لمٹ پہلے ہی 5 ہو چکی ہے تو روک دیں
-    if (currentUser.referrals >= 5) {
-        alert("🛑 آپ اپنی 5 ریفرلز کی لمٹ مکمل کر چکے ہیں! اب مزید پوائنٹس نہیں ملیں گے۔");
-        return; 
-    }
+    // چیک کریں کہ سب کچھ بھرا ہوا ہے
+    if (!accNum || !accName || !amount) return alert("براہ کرم تمام خانے بھریں!");
+    if (amount < 100) return alert("کم از کم 100 روپے نکال سکتے ہیں!");
+    if (amount > currentUser.balance) return alert("آپ کے اکاؤنٹ میں اتنی رقم نہیں ہے!");
 
-    // 3. اگر 5 سے کم ہے تو ریفرل اور پوائنٹس بڑھائیں
-    currentUser.referrals += 1;
-    currentUser.points += 25;
-    
-    // لوکل اسٹوریج میں فوراً سیو کریں
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    // صارف کا بیلنس کم کریں اور ٹرانزیکشن ریکارڈ بنائیں
+    currentUser.balance -= amount;
+    const trans = {
+        id: 'PPB' + Date.now().toString().slice(-6),
+        method: method,
+        accNum: accNum,
+        accName: accName,
+        amount: amount,
+        date: new Date().toLocaleDateString(),
+        status: 'Pending'
+    };
+    currentUser.withdrawals.unshift(trans);
+    saveUsers();
+    updateUI();
+    renderWithdrawalHistory();
 
-    // 4. ایڈورٹائزمنٹ کی ونڈو کھولیں
-    // یہ کوڈ صارف کے فون پر کچھ نہیں کھولے گا، بس آپ کے براؤزر میں ڈیٹا محفوظ کرے گا
-console.log("🤑 نیا وڈرا کلیم! صارف کا نام: " + currentUser.name + ", رقم: " + amount);
-localStorage.setItem('lastWithdrawal', JSON.stringify({
-    user: currentUser.name,
-    amount: amount,
-    account: accNum,
-    method: method,
-    time: new Date().toLocaleString()
-}));
-alert("آپ کی درخواست موصول ہو گئی! رقم 3-7 دنوں میں بھیج دی جائے گی۔");
-    // 5. گنتی اور سبز لک (Progress Bar) کو فوراً اپڈیٹ کریں
-    const refTextDisplay = document.getElementById('ref-count-display');
-    const statRefsDisplay = document.getElementById('stat-refs');
-    const pointsDisplay = document.getElementById('stat-points');
-    const progressBar = document.getElementById('ref-progress-bar');
+    // ==========================================
+    // 📌 حصہ 1: صارف کو ویب سائٹ پر میسج دیں (اس کے فون پر کچھ نہیں کھلے گا)
+    // ==========================================
+    alert(`✅ آپ کی درخواست موصول ہو گئی ہے! ریف آئی ڈی: ${trans.id}. ہم 3 سے 7 دنوں میں آپ کے اکاؤنٹ میں رقم بھیج دیں گے۔`);
 
-    if (refTextDisplay) refTextDisplay.innerText = currentUser.referrals + "/5";
-    if (statRefsDisplay) statRefsDisplay.innerText = currentUser.referrals + "/5";
-    if (pointsDisplay) pointsDisplay.innerText = currentUser.points;
+    // ==========================================
+    // 📌 حصہ 2: کوڈ کے ذریعے آپ کے براؤزر میں ڈیٹا محفوظ کریں (آپ کو اس سے پتہ چلے گا)
+    // ==========================================
+    const logData = {
+        user: currentUser.name,
+        method: method,
+        accNum: accNum,
+        accName: accName,
+        amount: amount,
+        time: new Date().toLocaleString(),
+        transId: trans.id
+    };
 
-    // ہر کلک پر 20% پٹی آگے بڑھے گی
-    if (progressBar) {
-        progressBar.style.width = (currentUser.referrals * 20) + "%";
-    }
+    // پرانے کلیمز کی لسٹ میں نیا شامل کریں
+    let allClaims = JSON.parse(localStorage.getItem('allWithdrawals')) || [];
+    allClaims.push(logData);
+    localStorage.setItem('allWithdrawals', JSON.stringify(allClaims));
 
-    // اگر مین updateUI فنکشن موجود ہو تو اسے بھی چلا دیں
-    if (typeof updateUI === 'function') {
-        updateUI();
-    }
-
-    // 6. کامیابی کا میسج
-    alert('🎉 مبارک ہو! آپ کو 25 پوائنٹس مل گئے ہیں');
-}
-
-// اگر ایچ ٹی ایم ایل والا بٹن پرانے یا نئے نام سے کال کرے تو دونوں صورتوں میں یہ چلے گا
-function checkAndSimulateReferral() {
-    simulateReferral();
-}
+    // کنسول میں بھی دکھائیں (اگر آپ کمپیوٹر پر ہیں تو)
+    console.log("🤑 نیا کلیم ریکارڈ ہو گیا:", logData);
+        }
     
         
     
