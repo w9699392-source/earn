@@ -68,7 +68,8 @@
         html += `</tbody></table>`;
         container.innerHTML = html;
     }
-
+// یہ لائن اس بات کو یقینی بنائے گی کہ ڈیٹا فوراً ظاہر ہو
+console.log("Admin Panel Loaded. Data found:", claims);
     // جب بھی پیج کھلے، فوراً ڈیٹا لوڈ کریں
 window.onload = function() {
     loadData();
