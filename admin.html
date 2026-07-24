@@ -1,65 +1,139 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="ur" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - وڈرا کلیمز</title>
+    <title>ایڈمن پینل - پرائز باکس</title>
     <style>
-        body { background: #0A0A0A; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #1A1A1A; padding: 20px; border-radius: 12px; border: 1px solid #333; }
-        h1 { color: #00C853; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: #00C853; color: black; padding: 10px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #333; }
-        .btn-refresh { width: 100%; padding: 12px; background: #F0B90B; color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .empty { text-align: center; color: #888; padding: 30px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        h1 { text-align: center; color: #00C853; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: right; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #00C853; color: white; }
+        .badge { padding: 5px 10px; border-radius: 5px; color: white; font-size: 12px; }
+        .bg-warning { background-color: #F0B90B; color: black; }
+        .bg-success { background-color: #00C853; }
+        #loader { text-align: center; font-size: 18px; color: #00C853; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🛡️ ایڈمن پینل - وڈرا کلیمز</h1>
-        <button class="btn-refresh" onclick="loadData()">🔄 ڈیٹا ریفریش کریں</button>
-        <div id="data-table" style="margin-top: 15px;"></div>
-    </div>
-    <script>
-    https://api.jsonbin.io/v3/b/6a62c4f6da38895dfe87b1f4
-     $2a$10$Z0jIDOJvvD95Sv/cn7Wbq.L6IjwGH.pA7QmOE8qweXlDOpaGtdZgq
-    function loadData() {
-            const claims = JSON.parse(localStorage.getItem('allWithdrawals')) || [];
-            const container = document.getElementById('data-table');
 
-            if (claims.length === 0) {
-                container.innerHTML = `<div class="empty">ابھی تک کوئی وڈرا کلیم نہیں ہوا۔</div>`;
+    <h1>🔒 پرائیویٹ ایڈمن ڈیش بورڈ</h1>
+    
+    <div id="loader">ڈیٹا سرور سے لوڈ ہو رہا ہے، براہ کرم انتظار کریں...</div>
+
+    <div class="card" id="dashboard" style="display: none;">
+        <h2>👥 کل یوزرز کا ریکارڈ</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>نام</th>
+                    <th>ای میل</th>
+                    <th>پوائنٹس</th>
+                    <th>موجودہ بیلنس (PKR)</th>
+                    <th>ریفرلز</th>
+                </tr>
+            </thead>
+            <tbody id="users-table-body">
+                <!-- Data will appear here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card" id="withdrawals" style="display: none;">
+        <h2>💰 ودڈرا (پیسے نکالنے) کی درخواستیں</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>یوزر کا نام</th>
+                    <th>طریقہ (طریقہ کار)</th>
+                    <th>اکاؤنٹ نمبر</th>
+                    <th>رقم</th>
+                    <th>سٹیٹس</th>
+                </tr>
+            </thead>
+            <tbody id="withdrawals-table-body">
+                <!-- Data will appear here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // آپ کی وہی API کیز 
+        const API_KEY = '$2a$10$Z0jIDOJvvD95Sv/cn7Wbq.L6IjwGH.pA7QmOE8qweXlDOpaGtdZgq';
+        const BIN_ID = '6a62c4f6da38895dfe87b1f4';
+        const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        async function fetchAdminData() {
+            try {
+                const response = await fetch(BIN_URL, {
+                    method: 'GET',
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await response.json();
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('withdrawals').style.display = 'block';
+
+                const users = data.record.users || [];
+                renderUsers(users);
+                renderWithdrawals(users);
+
+            } catch (error) {
+                document.getElementById('loader').innerText = "ڈیٹا لوڈ کرنے میں مسئلہ آیا ہے۔ انٹرنیٹ چیک کریں۔";
+            }
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            if (users.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5'>ابھی تک کوئی یوزر رجسٹر نہیں ہوا۔</td></tr>";
+                return;
+            }
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td>${u.name}</td>
+                    <td>${u.email}</td>
+                    <td>${u.points}</td>
+                    <td>Rs. ${u.balance}</td>
+                    <td>${u.referrals}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderWithdrawals(users) {
+            const tbody = document.getElementById('withdrawals-table-body');
+            let allRequests = [];
+            
+            users.forEach(user => {
+                if (user.withdrawals && user.withdrawals.length > 0) {
+                    user.withdrawals.forEach(w => {
+                        allRequests.push({ ...w, userName: user.name });
+                    });
+                }
+            });
+
+            if (allRequests.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5'>ابھی تک کوئی ریکوئسٹ نہیں آئی۔</td></tr>";
                 return;
             }
 
-            let html = `
-                <table>
-                    <tr>
-                        <th>#</th>
-                        <th>صارف</th>
-                        <th>اکاؤنٹ</th>
-                        <th>طریقہ</th>
-                        <th>رقم</th>
-                        <th>وقت</th>
-                    </tr>
-            `;
-            claims.slice().reverse().forEach((c, i) => {
-                html += `
-                    <tr>
-                        <td>${i+1}</td>
-                        <td style="color: #00C853;">${c.user}</td>
-                        <td>${c.accNum}</td>
-                        <td>${c.method}</td>
-                        <td style="color: #F0B90B;">Rs. ${c.amount}</td>
-                        <td style="font-size: 0.8rem;">${c.time}</td>
-                    </tr>
-                `;
-            });
-            html += `</table>`;
-            container.innerHTML = html;
+            tbody.innerHTML = allRequests.map(w => `
+                <tr>
+                    <td>${w.userName}</td>
+                    <td>${w.method}</td>
+                    <td>${w.accNum}</td>
+                    <td>Rs. ${w.amount}</td>
+                    <td><span class="badge ${w.status === 'Pending' ? 'bg-warning' : 'bg-success'}">${w.status}</span></td>
+                </tr>
+            `).join('');
         }
-        window.onload = loadData;
+
+        // پیج لوڈ ہوتے ہی ڈیٹا منگوائیں
+        window.onload = fetchAdminData;
     </script>
 </body>
-</html>
+    </html>
+    
